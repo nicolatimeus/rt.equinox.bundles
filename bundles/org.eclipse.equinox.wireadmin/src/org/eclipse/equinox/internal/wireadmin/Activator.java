@@ -8,6 +8,7 @@
  *
  * Contributors:
  *    ProSyst Software GmbH - initial API and implementation
+ *    Eurotech
  *******************************************************************************/
 package org.eclipse.equinox.internal.wireadmin;
 
@@ -69,8 +70,13 @@ public class Activator implements BundleActivator, ServiceListener, ServiceFacto
 			/* syntax is valid */
 			// ise.printStackTrace();
 		}
-		wireReDispatcher = new WireReDispatcher();
-		wireReDispatcher.start(bc);
+
+		final boolean disableRedispatcher = getBoolean("equinox.wireadmin.redispatcher.disable");
+
+		if (!disableRedispatcher) {
+			wireReDispatcher = new WireReDispatcher();
+			wireReDispatcher.start(bc);
+		}
 	}
 
 	/*
