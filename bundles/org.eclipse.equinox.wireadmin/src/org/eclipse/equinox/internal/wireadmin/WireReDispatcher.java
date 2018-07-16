@@ -8,6 +8,7 @@
  *
  * Contributors:
  *    ProSyst Software GmbH - initial API and implementation
+ *    Eurotech
  *******************************************************************************/
 package org.eclipse.equinox.internal.wireadmin;
 
@@ -177,14 +178,7 @@ public class WireReDispatcher implements WireAdminListener {
 					return;
 			}
 			String topic = WIRE_HEADER + TOPIC_SEPARATOR + topicSuffix;
-			if (!hasServiceReferences(topic)) {
-				if (Activator.LOG_DEBUG)
-					log.debug(0, 10017, event.toString(), null, false);
-				return; /*
-															 * no service references for this topic do not bother
-															 * EventAdmin
-															 */
-			}
+
 			Hashtable props = new Hashtable();
 			addServiceProps(props, ref);
 			Wire wire = event.getWire();
@@ -214,59 +208,6 @@ public class WireReDispatcher implements WireAdminListener {
 			if (Activator.LOG_DEBUG)
 				log.debug(0, 10018, event.toString(), null, false);
 		}
-	}
-
-	/**
-	 * This will return true if has at least one ServiceReference which match
-	 * given topic.
-	 * 
-	 * @param topic
-	 * @return
-	 */
-	protected boolean hasServiceReferences(String topic) {
-		BundleContext l_bc = bc;
-		if (l_bc == null) {
-			return false;
-		}
-		ServiceReference[] sr = null;
-		try {/* get all handlers */
-			sr = l_bc.getServiceReferences(EventHandler.class.getName(), null);
-		} catch (InvalidSyntaxException e) {
-			return false;
-		}
-		if (sr != null && sr.length > 0) {
-			TopicPermission perm = new TopicPermission(topic, TopicPermission.SUBSCRIBE);
-			for (int i = 0; i < sr.length; i++) {
-				try {
-					ServiceReference sRef = sr[i];
-					Bundle bundle = sRef.getBundle();
-					if (bundle != null && (bundle.getState() != Bundle.UNINSTALLED) && bundle.hasPermission(perm)) {
-						Object reftopic = sRef.getProperty(EventConstants.EVENT_TOPIC);
-						if (reftopic != null) { /*
-																											 * otherwise means will receive
-																											 * no events
-																											 */
-							if (reftopic instanceof String[]) { /*
-																																		 * even with one
-																																		 * element it
-																																		 * must be
-																																		 * String[]
-																																		 */
-								String topics[] = (String[]) reftopic;
-								for (int j = 0; j < topics.length; j++) {
-									if (matchTopic(topics[j], topic)) {
-										return true;
-									}
-								}
-							}
-						}
-					}/* check permission */
-				} catch (Throwable t) {
-					log.error("Error while checking bundle permissions", t);
-				}
-			}/* for */
-		}/* sr != null && sr.length > 0 */
-		return false;
 	}
 
 	/**
